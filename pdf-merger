@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+set -euo pipefail
+# Resolve symlinks (e.g. ~/.local/bin/pdf-merger -> repo/pdf-merger)
+_SCRIPT="$(readlink -f "${BASH_SOURCE[0]}")"
+ROOT="$(cd "$(dirname "$_SCRIPT")" && pwd)"
+PY="$ROOT/.venv/bin/python"
+if [[ ! -x "$PY" ]]; then
+  echo "No venv at .venv — create it and install deps:" >&2
+  echo "  cd \"$ROOT\" && python3 -m venv .venv && .venv/bin/pip install -r requirements.txt" >&2
+  exit 1
+fi
+exec "$PY" "$ROOT/main.py" "$@"
