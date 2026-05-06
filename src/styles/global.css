@@ -1,0 +1,102 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+:root {
+  color-scheme: light dark;
+  --bg: #0f1219;
+  --bg-elevated: #161b26;
+  --text: #e8ecf4;
+  --text-muted: #9aa3b5;
+  --accent: #6c9eff;
+  --accent-soft: color-mix(in srgb, var(--accent) 22%, transparent);
+  --font: "DM Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    --bg: #f4f6fb;
+    --bg-elevated: #ffffff;
+    --text: #121722;
+    --text-muted: #5c6578;
+    --accent: #3d6df0;
+    --accent-soft: color-mix(in srgb, var(--accent) 18%, transparent);
+  }
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font);
+  background: radial-gradient(
+      1200px 600px at 20% -10%,
+      var(--accent-soft),
+      transparent 55%
+    ),
+    radial-gradient(
+      900px 500px at 90% 20%,
+      color-mix(in srgb, var(--accent) 12%, transparent),
+      transparent 50%
+    ),
+    var(--bg);
+  color: var(--text);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+#root {
+  min-height: 100%;
+}
+
+.app {
+  min-height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(1.5rem, 4vw, 3rem);
+}
+
+.hero {
+  max-width: 36rem;
+  text-align: center;
+  padding: clamp(2rem, 5vw, 3rem) clamp(1.5rem, 4vw, 2.5rem);
+  border-radius: 1.25rem;
+  background: color-mix(in srgb, var(--bg-elevated) 88%, transparent);
+  border: 1px solid color-mix(in srgb, var(--text) 10%, transparent);
+  box-shadow: 0 24px 80px color-mix(in srgb, #000 35%, transparent);
+}
+
+@media (prefers-color-scheme: light) {
+  .hero {
+    box-shadow: 0 20px 60px color-mix(in srgb, var(--text) 12%, transparent);
+  }
+}
+
+.eyebrow {
+  margin: 0 0 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.title {
+  margin: 0;
+  font-size: clamp(2rem, 5vw, 2.75rem);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+}
+
+.subtitle {
+  margin: 1rem 0 0;
+  font-size: 1.05rem;
+  color: var(--text-muted);
+}

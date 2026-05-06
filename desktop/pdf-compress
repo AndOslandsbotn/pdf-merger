@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+set -euo pipefail
+# Resolve symlinks (e.g. ~/.local/bin/pdf-compress -> repo/pdf-compress)
+_SCRIPT="$(readlink -f "${BASH_SOURCE[0]}")"
+ROOT="$(cd "$(dirname "$_SCRIPT")" && pwd)"
+PY="$ROOT/.venv/bin/python"
+if [[ ! -x "$PY" ]]; then
+  echo "No venv at .venv — create it and install deps:" >&2
+  echo "  cd \"$ROOT\" && python3 -m venv .venv && .venv/bin/pip install -r requirements.txt" >&2
+  exit 1
+fi
+exec "$PY" "$ROOT/compress.py" "$@"
+
+# Optional: run from any directory (same idea as pdf-merger)
+#   mkdir -p "$HOME/.local/bin"
+#   ln -sf "$(readlink -f "${BASH_SOURCE[0]}")" "$HOME/.local/bin/pdf-compress"
+# Ensure ~/.local/bin is on PATH (e.g. export PATH="$HOME/.local/bin:$PATH" in ~/.bashrc).
