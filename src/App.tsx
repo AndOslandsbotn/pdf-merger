@@ -1,151 +1,117 @@
-import { type ChangeEvent, useCallback, useId, useRef, useState } from "react";
-import { mergePdfFiles } from "./mergePdfs";
+import { useEffect, useState } from "react";
+import FaqView from "./FaqView";
+import MergeView from "./MergeView";
+import PrivacyView from "./PrivacyView";
+import TermsView from "./TermsView";
+import { hashForView, type AppView, viewFromHash } from "./routes";
+import { SITE_REPO_URL } from "./site";
 
-function downloadBytes(data: Uint8Array, filename: string) {
-  const buffer = new ArrayBuffer(data.byteLength);
-  new Uint8Array(buffer).set(data);
-  const blob = new Blob([buffer], { type: "application/pdf" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = filename;
-  a.rel = "noopener";
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  URL.revokeObjectURL(url);
+const DOCUMENT_TITLES: Record<AppView, string> = {
+  merge: "PDF Merger — Merge PDFs privately in your browser",
+  faq: "FAQ — PDF Merger",
+  privacy: "Privacy Policy — PDF Merger",
+  terms: "Terms of Use — PDF Merger",
+};
+
+function normalizeHashOnce() {
+  const { hash } = window.location;
+  if (hash === "" || hash === "#") {
+    window.history.replaceState(
+      null,
+      "",
+      `${window.location.pathname}${window.location.search}#/`,
+    );
+  }
+}
+
+function SiteHeader({ view }: { view: AppView }) {
+  return (
+    <header className="site-header">
+      <div className="site-header-inner">
+        <a className="site-brand" href={hashForView("merge")}>
+          PDF Merger
+        </a>
+        <nav className="site-nav" aria-label="Primary">
+          <a
+            className="site-nav-link"
+            href={hashForView("merge")}
+            aria-current={view === "merge" ? "page" : undefined}
+          >
+            Merge
+          </a>
+          <a
+            className="site-nav-link"
+            href={hashForView("faq")}
+            aria-current={view === "faq" ? "page" : undefined}
+          >
+            FAQ
+          </a>
+          <a
+            className="site-nav-link"
+            href={hashForView("privacy")}
+            aria-current={view === "privacy" ? "page" : undefined}
+          >
+            Privacy
+          </a>
+          <a
+            className="site-nav-link"
+            href={hashForView("terms")}
+            aria-current={view === "terms" ? "page" : undefined}
+          >
+            Terms
+          </a>
+        </nav>
+      </div>
+    </header>
+  );
 }
 
 export default function App() {
-  const fileInputId = useId();
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const [files, setFiles] = useState<File[]>([]);
-  const [busy, setBusy] = useState(false);
-  const [status, setStatus] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [view, setView] = useState<AppView>(() => viewFromHash(window.location.hash));
 
-  const addFiles = useCallback((list: FileList | null) => {
-    if (!list?.length) return;
-    setFiles((prev) => [...prev, ...Array.from(list)]);
-    setError(null);
-    setStatus(null);
+  useEffect(() => {
+    normalizeHashOnce();
+    const onHashChange = () => setView(viewFromHash(window.location.hash));
+    window.addEventListener("hashchange", onHashChange);
+    return () => window.removeEventListener("hashchange", onHashChange);
   }, []);
 
-  const onFileInputChange = useCallback(
-    (event: ChangeEvent<HTMLInputElement>) => {
-      addFiles(event.target.files);
-      event.target.value = "";
-    },
-    [addFiles],
-  );
+  useEffect(() => {
+    document.title = DOCUMENT_TITLES[view];
+  }, [view]);
 
-  const removeAt = useCallback((index: number) => {
-    setFiles((prev) => prev.filter((_, i) => i !== index));
-    setStatus(null);
-  }, []);
-
-  const clearAll = useCallback(() => {
-    setFiles([]);
-    setError(null);
-    setStatus(null);
-  }, []);
-
-  const merge = useCallback(async () => {
-    setError(null);
-    setStatus(null);
-    setBusy(true);
-    try {
-      const bytes = await mergePdfFiles(files);
-      downloadBytes(bytes, "merged.pdf");
-      setStatus("Merged successfully. Your download should start shortly.");
-    } catch (e) {
-      const msg =
-        e instanceof Error
-          ? e.message
-          : "Merge failed. The file may be corrupt or password-protected.";
-      setError(msg);
-    } finally {
-      setBusy(false);
-    }
-  }, [files]);
+  const year = new Date().getFullYear();
 
   return (
-    <div className="app">
-      <header className="hero">
-        <p className="eyebrow">Browser tools</p>
-        <h1 className="title">PDF Merger</h1>
-        <p className="subtitle">
-          Merge PDFs privately on your device—files never leave your browser.
-        </p>
-
-        <section className="merge-tools" aria-label="Merge PDF files">
-          <div className="merge-toolbar">
-            <label className="sr-only" htmlFor={fileInputId}>
-              Add PDF files
-            </label>
-            <input
-              id={fileInputId}
-              ref={fileInputRef}
-              className="visually-hidden-input"
-              type="file"
-              accept="application/pdf,.pdf"
-              multiple
-              onChange={onFileInputChange}
-              disabled={busy}
-            />
-            <button
-              type="button"
-              className="btn btn-secondary"
-              disabled={busy}
-              onClick={() => fileInputRef.current?.click()}
-            >
-              Add PDFs
-            </button>
-            <button type="button" className="btn btn-secondary" disabled={busy || files.length === 0} onClick={clearAll}>
-              Clear all
-            </button>
-            <button
-              type="button"
-              className="btn btn-primary"
-              disabled={busy || files.length < 1}
-              onClick={() => void merge()}
-            >
-              {busy ? "Merging…" : "Merge & download"}
-            </button>
-          </div>
-
-          {files.length > 0 && (
-            <ol className="merge-file-list">
-              {files.map((file, index) => (
-                <li key={`${file.name}-${file.size}-${file.lastModified}-${index}`} className="merge-file-row">
-                  <span className="merge-file-order">{index + 1}.</span>
-                  <span className="merge-file-name">{file.name}</span>
-                  <button
-                    type="button"
-                    className="btn btn-ghost"
-                    disabled={busy}
-                    onClick={() => removeAt(index)}
-                    aria-label={`Remove ${file.name}`}
-                  >
-                    Remove
-                  </button>
-                </li>
-              ))}
-            </ol>
-          )}
-
-          {error ? (
-            <p className="merge-feedback merge-feedback-error" role="alert">
-              {error}
-            </p>
-          ) : null}
-          {status ? (
-            <p className="merge-feedback merge-feedback-ok" role="status">
-              {status}
-            </p>
-          ) : null}
-        </section>
-      </header>
+    <div className="layout">
+      <a className="skip-link" href="#main-content">
+        Skip to content
+      </a>
+      <SiteHeader view={view} />
+      <main id="main-content" className="main" tabIndex={-1}>
+        {view === "merge" ? <MergeView /> : null}
+        {view === "faq" ? <FaqView /> : null}
+        {view === "privacy" ? <PrivacyView /> : null}
+        {view === "terms" ? <TermsView /> : null}
+      </main>
+      <footer className="site-footer">
+        <div className="site-footer-inner">
+          <p className="site-footer-line">
+            © {year} PDF Merger. Merge PDFs in your browser; files stay on your device.
+          </p>
+          <p className="site-footer-line site-footer-links">
+            <a href={SITE_REPO_URL} rel="noopener noreferrer" target="_blank">
+              Source on GitHub
+            </a>
+            <span aria-hidden="true"> · </span>
+            <a href={hashForView("privacy")}>Privacy</a>
+            <span aria-hidden="true"> · </span>
+            <a href={hashForView("terms")}>Terms</a>
+            <span aria-hidden="true"> · </span>
+            <a href={hashForView("faq")}>FAQ</a>
+          </p>
+        </div>
+      </footer>
     </div>
   );
 }
