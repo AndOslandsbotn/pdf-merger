@@ -10,8 +10,9 @@
   --bg-elevated: #161b26;
   --text: #e8ecf4;
   --text-muted: #9aa3b5;
-  --accent: #6c9eff;
-  --accent-soft: color-mix(in srgb, var(--accent) 22%, transparent);
+  /* PDF-inspired balanced red (dark mode: medium warm red) */
+  --accent: #e85d5d;
+  --accent-soft: color-mix(in srgb, var(--accent) 20%, transparent);
   --font: "DM Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 }
 
@@ -21,8 +22,9 @@
     --bg-elevated: #ffffff;
     --text: #121722;
     --text-muted: #5c6578;
-    --accent: #3d6df0;
-    --accent-soft: color-mix(in srgb, var(--accent) 18%, transparent);
+    /* Deeper red on light backgrounds for contrast */
+    --accent: #c62828;
+    --accent-soft: color-mix(in srgb, var(--accent) 16%, transparent);
   }
 }
 
@@ -41,7 +43,7 @@ body {
     ),
     radial-gradient(
       900px 500px at 90% 20%,
-      color-mix(in srgb, var(--accent) 12%, transparent),
+      color-mix(in srgb, var(--accent) 11%, transparent),
       transparent 50%
     ),
     var(--bg);
