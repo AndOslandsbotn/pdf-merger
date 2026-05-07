@@ -23,7 +23,6 @@ Enable **GitHub Pages** with the **GitHub Actions** source. The workflow `.githu
 
 ## Desktop (Python)
 
-
 Local GUI/CLI tools using `pypdf` and optional Ghostscript for compression. Run from the `desktop/` directory:
 
 ```bash
